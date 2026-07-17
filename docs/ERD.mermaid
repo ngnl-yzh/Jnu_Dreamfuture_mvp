@@ -1,0 +1,171 @@
+erDiagram
+    USER {
+        int id PK
+        string email UK
+        string password_hash
+        string nickname
+        bool is_admin "본부 관리자"
+        bool jnu_verified "전대 이메일 인증(필수, 미인증시 기능 제한)"
+        datetime jnu_verified_at
+        bool consent_privacy "개인정보 동의"
+        bool consent_data_share "익명화 제공 동의"
+        datetime created_at
+    }
+
+    MVP {
+        int id PK
+        int owner_id FK
+        string title
+        string tagline "한 줄 소개"
+        text description_md
+        string category
+        string runtime_type "static | server | notebook"
+        string status "draft | pending | published | rejected | terminated"
+        datetime created_at
+    }
+
+    MVP_ARTIFACT {
+        int id PK
+        int mvp_id FK
+        int version
+        string storage_key "내부 스토리지 경로(외부 비노출)"
+        int file_size
+        string validation_status
+        string publish_status "draft | published | archived"
+        string upload_channel "web | api | cli | github"
+        datetime uploaded_at
+    }
+
+    API_TOKEN {
+        int id PK
+        int user_id FK
+        string token_hash "원문 미저장"
+        string label "예: 내 노트북 CLI"
+        datetime last_used_at
+        datetime revoked_at "nullable"
+    }
+
+    MVP_INSTANCE {
+        int id PK
+        int mvp_id FK
+        string container_id
+        string route_path "iframe용 고유 경로"
+        string status "stopped | running | error"
+        datetime last_active_at
+    }
+
+    TEST_STEP {
+        int id PK
+        int mvp_id FK
+        int step_order
+        string title
+        string guide_text "단계별 한 줄 안내"
+        string fixed_category "pre_entry | setup | core | post"
+    }
+
+    REVIEW {
+        int id PK
+        int mvp_id FK "UK(mvp,reviewer) 재평가 방지"
+        int reviewer_id FK
+        int first_impression "1-5"
+        bool onboarding_ok
+        text onboarding_note
+        bool reached_core
+        int stuck_step_id FK "막힌 단계(nullable)"
+        text stuck_note
+        int rating "완성도·유용성 1-5"
+        text improvement_note "최소 글자수 검증"
+        int nps "0-10"
+        datetime created_at
+    }
+
+    REVIEW_VOTE {
+        int id PK
+        int review_id FK
+        int voter_id FK
+        bool is_useful "유용 투표(정렬용)"
+    }
+
+    CREDIT_LEDGER {
+        int id PK
+        int user_id FK
+        int delta "+1 평가 / -3 등록 / +3 가입"
+        string reason
+        int ref_id "관련 리뷰/MVP id"
+        datetime created_at
+    }
+
+    POINT_LEDGER {
+        int id PK
+        int user_id FK
+        int delta "누적형, 보상 전환용"
+        string reason
+        datetime created_at
+    }
+
+    DATA_EXPORT_REQUEST {
+        int id PK
+        int mvp_id FK
+        int requester_id FK
+        string status "pending | approved | rejected"
+        int reviewed_by FK "본부 관리자"
+        text decision_note
+        datetime decided_at
+    }
+
+    EXPORT_AUDIT_LOG {
+        int id PK
+        int export_request_id FK
+        int exported_by FK
+        string data_scope
+        datetime exported_at
+    }
+
+    GROUP {
+        int id PK
+        string name "수업/동아리"
+        string invite_code UK
+        int owner_id FK
+    }
+
+    GROUP_MEMBER {
+        int group_id FK
+        int user_id FK
+        datetime joined_at
+    }
+
+    GROUP_ASSIGNMENT {
+        int id PK
+        int group_id FK
+        int mvp_id FK
+        datetime due_date
+    }
+
+    REPORT {
+        int id PK
+        string target_type "review | mvp"
+        int target_id
+        int reporter_id FK
+        text reason
+        string status "pending | confirmed | dismissed"
+    }
+
+    USER ||--o{ MVP : "등록"
+    USER ||--o{ API_TOKEN : "토큰 발급"
+    MVP ||--o{ MVP_ARTIFACT : "버전"
+    MVP ||--o| MVP_INSTANCE : "실행 인스턴스"
+    MVP ||--o{ TEST_STEP : "테스트 단계(2~7)"
+    MVP ||--o{ REVIEW : "평가"
+    USER ||--o{ REVIEW : "작성"
+    TEST_STEP |o--o{ REVIEW : "막힌 지점"
+    REVIEW ||--o{ REVIEW_VOTE : "유용 투표"
+    USER ||--o{ CREDIT_LEDGER : "크레딧 원장"
+    USER ||--o{ POINT_LEDGER : "포인트 원장"
+    MVP ||--o{ DATA_EXPORT_REQUEST : "반출 신청"
+    DATA_EXPORT_REQUEST ||--o{ EXPORT_AUDIT_LOG : "감사 로그"
+    USER ||--o{ GROUP : "생성"
+    GROUP ||--o{ GROUP_MEMBER : "구성원"
+    USER ||--o{ GROUP_MEMBER : "가입"
+    GROUP ||--o{ GROUP_ASSIGNMENT : "평가 과제"
+    MVP ||--o{ GROUP_ASSIGNMENT : "대상"
+    USER ||--o{ REPORT : "신고"

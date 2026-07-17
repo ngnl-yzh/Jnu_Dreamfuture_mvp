@@ -1,0 +1,95 @@
+name: jnu-mvp-platform
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: jnu
+      POSTGRES_PASSWORD: jnu
+      POSTGRES_DB: jnu_mvp
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jnu -d jnu_mvp"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+
+  createbucket:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 3;
+      mc alias set local http://minio:9000 minioadmin minioadmin;
+      mc mb --ignore-existing local/mvp-artifacts;
+      exit 0"
+
+  traefik:
+    image: traefik:v3.1
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+    ports:
+      - "8080:80"    # MVP 실행 경로 (/run/{slug})
+      - "8081:8080"  # traefik 대시보드 (로컬 전용)
+    volumes:
+      - //var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - default
+      - jnu-sandbox
+
+  backend:
+    build: ../backend
+    environment:
+      JNU_DATABASE_URL: postgresql+psycopg://jnu:jnu@postgres:5432/jnu_mvp
+      JNU_STORAGE_BACKEND: s3
+      JNU_S3_ENDPOINT_URL: http://minio:9000
+      JNU_SANDBOX_ENABLED: "true"
+      JNU_SANDBOX_NETWORK: jnu-mvp-platform_jnu-sandbox
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    volumes:
+      - //var/run/docker.sock:/var/run/docker.sock  # 샌드박스 컨테이너 제어용
+
+  frontend:
+    build: ../frontend
+    environment:
+      NEXT_PUBLIC_API_BASE: http://localhost:8000
+      NEXT_PUBLIC_RUN_BASE: http://localhost:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+networks:
+  jnu-sandbox:
+    # MVP 샌드박스 컨테이너 전용 네트워크 (traefik 라우팅용).
+    # 컨테이너 자체는 network_disabled 또는 internal 네트워크로 아웃바운드 차단.
+
+volumes:
+  pgdata:
+  miniodata:
