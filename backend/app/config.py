@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="JNU_", extra="ignore")
 
     app_name: str = "JNU MVP Platform"
-    secret_key: str = "dev-secret-change-me"
+    secret_key: str = "dev-secret-change-me-0123456789abcdef"  # 운영에서는 반드시 교체
     database_url: str = "postgresql+psycopg://jnu:jnu@localhost:5432/jnu_mvp"
 
     access_token_expire_minutes: int = 30
