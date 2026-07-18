@@ -87,7 +87,12 @@ class DockerSandboxRunner:
             mem_limit=self.settings.sandbox_mem_limit,
             nano_cpus=int(self.settings.sandbox_cpu_quota * 1e9),
             read_only=True,
-            tmpfs={"/var/cache/nginx": "", "/var/run": "", "/tmp": ""},
+            # 비루트(nginx) 실행이므로 tmpfs는 쓰기 가능 모드로 마운트
+            tmpfs={
+                "/var/cache/nginx": "mode=1777",
+                "/var/run": "mode=1777",
+                "/tmp": "mode=1777",
+            },
             labels={
                 "traefik.enable": "true",
                 "jnu.sandbox": "true",
