@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jnu-mvp"
+version = "0.1.0"
+description = "전남대 MVP 플랫폼 CLI — 한 줄로 MVP를 배포하세요"
+requires-python = ">=3.10"
+dependencies = ["requests>=2.31"]
+
+[project.scripts]
+mvp = "jnu_mvp.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["jnu_mvp*"]
