@@ -29,7 +29,9 @@
 
 ## 현재 상태
 
-- Phase 0~ 진행 중. 로컬에 Docker Desktop 미설치 → `docker compose up` 실기동 및 Phase 3 샌드박스 실행 검증은 Docker 설치 후 수행.
+- Phase 0~8 전부 구현 완료 (backend pytest 38건 + cli 2건 통과, CLI 실서버 E2E 검증, 프론트 8개 라우트 빌드·브라우저 검증).
+- 로컬에 Docker Desktop 미설치 → `docker compose up` 실기동 및 Phase 3 샌드박스 컨테이너 실행 검증만 남음 (코드·단위테스트는 완료, 미설치 시 실행 API는 503).
+- 결정 사항: 새 버전 게시 신청도 매번 관리자 재승인(pending) — 검수 원칙 우선. 가입 보너스 크레딧은 이메일 인증 완료 시점 지급.
 
 ## 개발 명령
 
