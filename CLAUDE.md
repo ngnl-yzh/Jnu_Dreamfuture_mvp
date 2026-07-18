@@ -29,8 +29,9 @@
 
 ## 현재 상태
 
-- Phase 0~8 전부 구현 완료 (backend pytest 38건 + cli 2건 통과, CLI 실서버 E2E 검증, 프론트 8개 라우트 빌드·브라우저 검증).
-- 로컬에 Docker Desktop 미설치 → `docker compose up` 실기동 및 Phase 3 샌드박스 컨테이너 실행 검증만 남음 (코드·단위테스트는 완료, 미설치 시 실행 API는 503).
+- Phase 0~8 전부 구현·검증 완료 (backend pytest 38건 + cli 2건 통과, CLI 실서버 E2E, 프론트 브라우저 검증).
+- Docker Desktop 4.82 설치 완료(2026-07-18). `docker compose up` 전 스택 실기동, zip→MinIO→이미지 빌드→비루트 read-only 컨테이너→Traefik `/run/mvp-1` 서빙, 프론트 iframe 표시, 아웃바운드 차단(internal 네트워크)까지 실검증됨.
+- 주의: PowerShell 5.1 Invoke-RestMethod로 한글 JSON 보낼 때 charset 미지정 시 깨짐 — 테스트 시드는 curl/파이썬 사용.
 - 결정 사항: 새 버전 게시 신청도 매번 관리자 재승인(pending) — 검수 원칙 우선. 가입 보너스 크레딧은 이메일 인증 완료 시점 지급.
 
 ## 개발 명령

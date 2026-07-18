@@ -24,6 +24,15 @@ const SORTS = [
   ["votes", "유용 투표순"],
 ] as const;
 
+function Stars({ value }: { value: number }) {
+  const full = Math.round(value);
+  return (
+    <span className="stars" title={`평균 ${value}점`}>
+      {"★".repeat(full)}{"☆".repeat(5 - full)} <span style={{ color: "var(--text)" }}>{value}</span>
+    </span>
+  );
+}
+
 export default function HomePage() {
   const [items, setItems] = useState<MvpItem[]>([]);
   const [sort, setSort] = useState("latest");
@@ -37,14 +46,27 @@ export default function HomePage() {
   }, [sort, category]);
 
   const categories = Array.from(new Set(items.map((m) => m.category)));
+  const totalReviews = items.reduce((acc, m) => acc + m.review_count, 0);
 
   return (
     <div>
-      <h1>전남대 구성원의 MVP를 체험하고 평가해보세요</h1>
-      <p className="muted">
-        소스코드는 공개되지 않습니다 — 사이트 안에서 실행 화면만 체험하는 블랙박스 방식입니다.
-        평가 1건 작성 = 크레딧 +1, MVP 등록 = 크레딧 3 소모.
-      </p>
+      <section className="hero">
+        <div className="hero-eyebrow">🎓 전남대학교 구성원 전용</div>
+        <h1>
+          만든 사람은 <span className="accent">피드백</span>을,<br />
+          써본 사람은 <span className="accent">크레딧</span>을.
+        </h1>
+        <p className="hero-sub">
+          내가 만든 MVP를 올리면 다른 구성원이 사이트 안에서 바로 체험하고 구조화된 평가를 남깁니다.
+          소스코드는 절대 공개되지 않는 블랙박스 방식.
+        </p>
+        <div className="hero-stats">
+          <span className="stat-pill"><strong>{items.length}</strong>개 MVP 게시 중</span>
+          <span className="stat-pill"><strong>{totalReviews}</strong>건의 평가</span>
+          <span className="stat-pill">평가 1건 = <strong>크레딧 +1</strong></span>
+          <span className="stat-pill">등록 1회 = <strong>크레딧 3</strong> 소모</span>
+        </div>
+      </section>
 
       <div className="tabs">
         {SORTS.map(([key, label]) => (
@@ -54,7 +76,7 @@ export default function HomePage() {
           </button>
         ))}
         {categories.length > 0 && (
-          <select style={{ width: "auto" }} value={category}
+          <select style={{ width: "auto", marginLeft: "auto" }} value={category}
                   onChange={(e) => setCategory(e.target.value)}>
             <option value="">전체 카테고리</option>
             {categories.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -64,21 +86,29 @@ export default function HomePage() {
 
       {error && <p className="error">{error}</p>}
       {items.length === 0 && !error && (
-        <p className="muted">아직 게시된 MVP가 없습니다. 첫 번째 MVP를 등록해보세요!</p>
+        <div className="card" style={{ textAlign: "center", padding: 40 }}>
+          <p style={{ fontSize: 32, margin: "0 0 8px" }}>🚀</p>
+          <p className="muted">아직 게시된 MVP가 없습니다. 첫 번째 MVP를 등록해보세요!</p>
+        </div>
       )}
 
       <div className="grid">
         {items.map((m) => (
-          <Link key={m.id} href={`/mvps/${m.id}`} style={{ color: "inherit" }}>
-            <div className="card">
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <strong>{m.title}</strong>
-                <span className="badge">{m.category}</span>
+          <Link key={m.id} href={`/mvps/${m.id}`}>
+            <div className="card mvp-card">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 8 }}>
+                <span className="mvp-title">{m.title}</span>
+                <span className="badge cat">{m.category}</span>
               </div>
-              <p className="muted" style={{ margin: "6px 0" }}>{m.tagline}</p>
-              <div className="muted" style={{ fontSize: 12 }}>
-                {m.avg_rating !== null && <span className="stars">★ {m.avg_rating} </span>}
-                리뷰 {m.review_count} · 유용 {m.useful_vote_count} · 조회 {m.view_count} · by {m.owner_nickname}
+              <p className="mvp-tagline">{m.tagline}</p>
+              {m.avg_rating !== null ? <Stars value={m.avg_rating} /> : (
+                <span className="muted" style={{ fontSize: 12.5 }}>첫 평가를 기다리는 중</span>
+              )}
+              <div className="mvp-meta">
+                <span>💬 {m.review_count}</span>
+                <span>👍 {m.useful_vote_count}</span>
+                <span>👀 {m.view_count}</span>
+                <span style={{ marginLeft: "auto" }}>by {m.owner_nickname}</span>
               </div>
             </div>
           </Link>

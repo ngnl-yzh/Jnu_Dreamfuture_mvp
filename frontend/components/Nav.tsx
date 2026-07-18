@@ -23,7 +23,10 @@ export default function Nav() {
   return (
     <nav className="nav">
       <div className="nav-inner">
-        <Link href="/" className="nav-brand">JNU MVP</Link>
+        <Link href="/" className="nav-brand">
+          <span className="brand-mark">J</span>
+          JNU&nbsp;MVP
+        </Link>
         <div className="nav-links">
           <Link href="/">둘러보기</Link>
           {me ? (
@@ -31,8 +34,8 @@ export default function Nav() {
               <Link href="/mvps/new">MVP 등록</Link>
               <Link href="/me">마이페이지</Link>
               {me.is_admin && <Link href="/admin">관리자</Link>}
-              <span className="muted">
-                {me.nickname} · 크레딧 {me.credit_balance} · 포인트 {me.point_balance}
+              <span className="nav-credit" title={`${me.nickname}님 · 포인트 ${me.point_balance}`}>
+                ⚡ 크레딧 {me.credit_balance}
               </span>
               <button
                 className="btn btn-ghost btn-sm"
@@ -44,7 +47,7 @@ export default function Nav() {
           ) : (
             <>
               <Link href="/login">로그인</Link>
-              <Link href="/signup">가입</Link>
+              <Link href="/signup" className="btn btn-sm" style={{ color: "#fff" }}>가입하기</Link>
             </>
           )}
         </div>

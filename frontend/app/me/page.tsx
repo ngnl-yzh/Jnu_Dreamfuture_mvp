@@ -152,13 +152,20 @@ export default function MyPage() {
 
           {current && (
             <div className="card">
-              <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-                <div><strong>조회</strong><br />{current.view_count}</div>
-                <div><strong>리뷰</strong><br />{current.review_count}</div>
-                <div><strong>평균 별점</strong><br />{current.avg_rating ?? "-"}</div>
-                <div><strong>온보딩 성공률</strong><br />{current.onboarding_success_rate ?? "-"}%</div>
-                <div><strong>핵심 도달률</strong><br />{current.core_reach_rate ?? "-"}%</div>
-                <div><strong>NPS</strong><br />{current.nps ?? "-"}</div>
+              <div className="stat-grid">
+                {[
+                  ["조회", current.view_count],
+                  ["리뷰", current.review_count],
+                  ["평균 별점", current.avg_rating !== null ? `★ ${current.avg_rating}` : "-"],
+                  ["온보딩 성공률", current.onboarding_success_rate !== null ? `${current.onboarding_success_rate}%` : "-"],
+                  ["핵심 도달률", current.core_reach_rate !== null ? `${current.core_reach_rate}%` : "-"],
+                  ["NPS", current.nps ?? "-"],
+                ].map(([k, v]) => (
+                  <div className="stat-box" key={k as string}>
+                    <div className="k">{k}</div>
+                    <div className="v">{v}</div>
+                  </div>
+                ))}
               </div>
 
               <h3>평점 분포</h3>
@@ -181,7 +188,7 @@ export default function MyPage() {
                     <span style={{ width: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {s.step_order}. {s.title} <span className="muted">({CATEGORY_LABELS[s.fixed_category]})</span>
                     </span>
-                    <div className="bar-track"><div className="bar-fill" style={{ width: `${(s.stuck_count / max) * 100}%`, background: "var(--danger)" }} /></div>
+                    <div className="bar-track"><div className="bar-fill bad" style={{ width: `${(s.stuck_count / max) * 100}%` }} /></div>
                     <span style={{ width: 24 }}>{s.stuck_count}</span>
                   </div>
                 );

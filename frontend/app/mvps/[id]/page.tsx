@@ -145,7 +145,11 @@ export default function MvpDetailPage({ params }: { params: Promise<{ id: string
         </div>
         {error && <p className="error">{error}</p>}
         {runUrl ? (
-          <div className="iframe-wrap" style={{ marginTop: 12 }}>
+          <div className="iframe-wrap" style={{ marginTop: 14 }}>
+            <div className="iframe-chrome">
+              <span className="dot" /><span className="dot" /><span className="dot" />
+              <span className="addr">🔒 블랙박스 샌드박스 — {detail.instance!.route_path}</span>
+            </div>
             {/* 블랙박스 실행: sandbox 속성으로 플랫폼 도메인과 격리 */}
             <iframe src={runUrl} sandbox="allow-scripts allow-forms allow-same-origin"
                     title={detail.title} />
@@ -192,13 +196,15 @@ export default function MvpDetailPage({ params }: { params: Promise<{ id: string
         </div>
 
         {reviews.map((r) => (
-          <div key={r.id} style={{ borderTop: "1px solid var(--line)", paddingTop: 12, marginTop: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
-              <strong>{r.reviewer_nickname} <span className="stars">{"★".repeat(r.rating)}</span></strong>
-              <span className="muted" style={{ fontSize: 12 }}>
+          <div key={r.id} className="review-item" style={{ marginTop: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span className="avatar">{r.reviewer_nickname.slice(0, 1)}</span>
+              <strong>{r.reviewer_nickname}</strong>
+              <span className="stars">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+              <span className="muted" style={{ fontSize: 12, marginLeft: "auto" }}>
                 첫인상 {r.first_impression}/5 · NPS {r.nps}/10 ·{" "}
-                {r.onboarding_ok ? "온보딩 성공" : "온보딩 실패"} ·{" "}
-                {r.reached_core ? "핵심 도달" : `막힘: ${r.stuck_step_title ?? "-"}`}
+                {r.onboarding_ok ? "온보딩 ✅" : "온보딩 ❌"} ·{" "}
+                {r.reached_core ? "핵심 도달 ✅" : `막힘: ${r.stuck_step_title ?? "-"}`}
               </span>
             </div>
             {!r.reached_core && r.stuck_note && <p className="muted" style={{ margin: "4px 0" }}>막힌 지점: {r.stuck_note}</p>}
