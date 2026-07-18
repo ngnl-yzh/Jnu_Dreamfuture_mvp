@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { api, API_BASE, getToken } from "../../lib/api";
+import LoginCta from "../../components/LoginCta";
+import { api, API_BASE, ApiError, getToken } from "../../lib/api";
 
 interface MvpStats {
   mvp_id: number; title: string; status: string; view_count: number;
@@ -34,6 +35,7 @@ export default function MyPage() {
   const [file, setFile] = useState<File | null>(null);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
+  const [needLogin, setNeedLogin] = useState(false);
 
   const loadAll = useCallback(() => {
     api<{ mvps: MvpStats[] }>("/api/me/dashboard").then((d) => {
@@ -41,12 +43,15 @@ export default function MyPage() {
       if (d.mvps.length > 0) {
         setSelected((prev) => prev ?? d.mvps[0].mvp_id);
       }
-    }).catch((e) => setError(e.message));
+    }).catch((e) => {
+      if (e instanceof ApiError && e.status === 401) setNeedLogin(true);
+      else setError(e.message);
+    });
     api<ApiTokenItem[]>("/api/tokens").then(setTokens).catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (!getToken()) { setError("로그인 후 이용할 수 있습니다."); return; }
+    if (!getToken()) { setNeedLogin(true); return; }
     const params = new URLSearchParams(location.search);
     const pre = params.get("mvp");
     if (pre) setSelected(+pre);
@@ -128,6 +133,7 @@ export default function MyPage() {
     loadAll();
   }
 
+  if (needLogin) return <LoginCta message="마이페이지는 로그인 후 이용할 수 있습니다." />;
   if (error && stats.length === 0) return <p className="error">{error}</p>;
 
   return (

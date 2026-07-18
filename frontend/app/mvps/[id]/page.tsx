@@ -1,7 +1,8 @@
 "use client";
 
 import { use, useCallback, useEffect, useRef, useState } from "react";
-import { api, getToken, RUN_BASE } from "../../../lib/api";
+import LoginCta from "../../../components/LoginCta";
+import { api, ApiError, getToken, RUN_BASE } from "../../../lib/api";
 
 const CATEGORY_LABELS: Record<string, string> = {
   pre_entry: "진입 전", setup: "가입·설정", core: "핵심 기능", post: "완료 후",
@@ -38,17 +39,21 @@ export default function MvpDetailPage({ params }: { params: Promise<{ id: string
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const [needLogin, setNeedLogin] = useState(false);
   const [formError, setFormError] = useState("");
   const [starting, setStarting] = useState(false);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(() => {
-    api<Detail>(`/api/mvps/${id}`).then(setDetail).catch((e) => setError(e.message));
+    api<Detail>(`/api/mvps/${id}`).then(setDetail).catch((e) => {
+      if (e instanceof ApiError && e.status === 401) setNeedLogin(true);
+      else setError(e.message);
+    });
     api<ReviewItem[]>(`/api/mvps/${id}/reviews?sort=${reviewSort}`).then(setReviews).catch(() => {});
   }, [id, reviewSort]);
 
   useEffect(() => {
-    if (!getToken()) { setError("로그인 후 이용할 수 있습니다."); return; }
+    if (!getToken()) { setNeedLogin(true); return; }
     load();
   }, [load]);
 
@@ -68,6 +73,8 @@ export default function MvpDetailPage({ params }: { params: Promise<{ id: string
     setError("");
     try {
       await api(`/api/mvps/${id}/instance/start`, { method: "POST" });
+      // Traefik이 새 컨테이너 라우팅을 등록할 시간을 잠깐 준다
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       load();
     } catch (err: any) {
       setError(err.message);
@@ -113,8 +120,9 @@ export default function MvpDetailPage({ params }: { params: Promise<{ id: string
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   }
 
+  if (needLogin) return <LoginCta message="MVP 체험과 평가는 로그인 후 이용할 수 있습니다." />;
   if (error && !detail) return <p className="error">{error}</p>;
-  if (!detail) return <p className="muted">불러오는 중…</p>;
+  if (!detail) return <div className="loading"><span className="spinner" /> 불러오는 중…</div>;
 
   const running = detail.instance?.status === "running";
   const runUrl = running ? `${RUN_BASE}${detail.instance!.route_path}/` : null;

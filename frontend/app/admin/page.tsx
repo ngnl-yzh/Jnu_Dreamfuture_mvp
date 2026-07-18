@@ -34,7 +34,7 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    if (!getToken()) { setError("로그인 후 이용할 수 있습니다."); return; }
+    if (!getToken()) { setError("본부 관리자 계정으로 로그인 후 이용할 수 있습니다."); return; }
     load();
   }, [load]);
 

@@ -108,8 +108,9 @@ def export_data(
     writer = csv.DictWriter(buf, fieldnames=fieldnames)
     writer.writeheader()
     writer.writerows(rows)
+    # BOM: 한글 포함 CSV를 Excel에서 바로 열 수 있게
     return Response(
-        buf.getvalue(),
+        "\ufeff" + buf.getvalue(),
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

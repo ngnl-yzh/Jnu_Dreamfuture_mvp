@@ -5,6 +5,14 @@ export const RUN_BASE =
 
 const TOKEN_KEY = "jnu_access_token";
 
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
   return localStorage.getItem(TOKEN_KEY);
@@ -34,19 +42,25 @@ export async function api<T = any>(path: string, opts: ApiOptions = {}): Promise
     body = JSON.stringify(opts.body);
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: opts.method ?? (body ? "POST" : "GET"),
-    headers,
-    body,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method: opts.method ?? (body ? "POST" : "GET"),
+      headers,
+      body,
+    });
+  } catch {
+    throw new ApiError("서버에 연결할 수 없습니다. 백엔드가 실행 중인지 확인해주세요.", 0);
+  }
   if (res.status === 204) return null as T;
 
   const contentType = res.headers.get("content-type") ?? "";
   const data = contentType.includes("json") ? await res.json().catch(() => null) : await res.text();
   if (!res.ok) {
     const detail = (data as any)?.detail;
-    throw new Error(
-      typeof detail === "string" ? detail : detail ? JSON.stringify(detail) : `요청 실패 (${res.status})`
+    throw new ApiError(
+      typeof detail === "string" ? detail : detail ? JSON.stringify(detail) : `요청 실패 (${res.status})`,
+      res.status
     );
   }
   return data as T;
