@@ -58,9 +58,9 @@ export default function SignupPage() {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: "40px auto" }}>
-      <div className="card">
-        <h1>가입</h1>
+    <div className="auth-wrap reveal" style={{ maxWidth: 480 }}>
+      <div className="auth-card">
+        <h1>{step === "form" ? "가입하기 🎓" : "이메일 인증 ✉️"}</h1>
         <p className="muted">전남대학교 구성원 전용 — @jnu.ac.kr 이메일 인증이 필요합니다.
           전대 포털 비밀번호가 아닌 이 사이트 전용 비밀번호를 새로 만들어주세요.</p>
 
@@ -87,8 +87,10 @@ export default function SignupPage() {
             </label>
 
             {error && <p className="error">{error}</p>}
-            <div style={{ marginTop: 16 }}>
-              <button className="btn" type="submit" disabled={!consentPrivacy}>가입하기</button>
+            <div style={{ marginTop: 18 }}>
+              <button className="btn" type="submit" disabled={!consentPrivacy} style={{ width: "100%" }}>
+                가입하고 인증 코드 받기
+              </button>
             </div>
           </form>
         ) : (

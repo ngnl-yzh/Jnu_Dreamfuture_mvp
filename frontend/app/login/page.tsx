@@ -23,9 +23,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto" }}>
-      <div className="card">
-        <h1>로그인</h1>
+    <div className="auth-wrap reveal">
+      <div className="auth-card">
+        <h1>다시 오셨네요 👋</h1>
+        <p className="muted" style={{ marginBottom: 8 }}>전남대 계정으로 로그인하세요.</p>
         <form onSubmit={submit}>
           <label>전남대 이메일</label>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
@@ -33,11 +34,11 @@ export default function LoginPage() {
           <label>비밀번호</label>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           {error && <p className="error">{error}</p>}
-          <div style={{ marginTop: 16 }}>
-            <button className="btn" type="submit">로그인</button>
+          <div style={{ marginTop: 18 }}>
+            <button className="btn" type="submit" style={{ width: "100%" }}>로그인</button>
           </div>
         </form>
-        <p className="muted" style={{ marginTop: 14 }}>
+        <p className="muted" style={{ marginTop: 16, textAlign: "center" }}>
           아직 계정이 없나요? <a href="/signup">가입하기</a>
         </p>
       </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, getToken, setToken } from "../lib/api";
+import ThemeToggle from "./ThemeToggle";
 
 interface Me {
   nickname: string;
@@ -37,6 +38,7 @@ export default function Nav() {
               <span className="nav-credit" title={`${me.nickname}님 · 포인트 ${me.point_balance}`}>
                 ⚡ 크레딧 {me.credit_balance}
               </span>
+              <ThemeToggle />
               <button
                 className="btn btn-ghost btn-sm"
                 onClick={() => { setToken(null); location.href = "/"; }}
@@ -47,6 +49,7 @@ export default function Nav() {
           ) : (
             <>
               <Link href="/login">로그인</Link>
+              <ThemeToggle />
               <Link href="/signup" className="btn btn-sm" style={{ color: "#fff" }}>가입하기</Link>
             </>
           )}
