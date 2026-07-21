@@ -178,7 +178,7 @@ export default function MvpDetailPage({ params }: { params: Promise<{ id: string
               <span className="step-num">{s.step_order}</span>
               <span><strong>{s.title}</strong>
                 {s.guide_text && <span className="muted"> — {s.guide_text}</span>}{" "}
-                <span className="badge">{CATEGORY_LABELS[s.fixed_category]}</span>
+                <span className="badge cat">{CATEGORY_LABELS[s.fixed_category]}</span>
               </span>
             </li>
           ))}
