@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import LoginCta from "../../components/LoginCta";
+import StepNodes from "../../components/StepNodes";
 import { api, API_BASE, ApiError, getToken } from "../../lib/api";
 
 interface MvpStats {
@@ -187,18 +188,17 @@ export default function MyPage() {
               })}
 
               <h3>단계별 이탈 (막힌 지점)</h3>
-              {current.stuck_by_step.map((s) => {
-                const max = Math.max(1, ...current.stuck_by_step.map((x) => x.stuck_count));
-                return (
-                  <div className="bar-row" key={s.step_order}>
-                    <span style={{ width: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {s.step_order}. {s.title} <span className="muted">({CATEGORY_LABELS[s.fixed_category]})</span>
-                    </span>
-                    <div className="bar-track"><div className="bar-fill bad" style={{ width: `${(s.stuck_count / max) * 100}%` }} /></div>
-                    <span style={{ width: 24 }}>{s.stuck_count}</span>
-                  </div>
-                );
-              })}
+              <p className="muted" style={{ marginTop: 0 }}>
+                평가자가 여정의 어느 노드에서 막혔는지 — 이탈이 가장 몰린 노드가 붉게 표시됩니다.
+              </p>
+              <StepNodes
+                variant="stats"
+                totalReviews={current.review_count}
+                steps={current.stuck_by_step.map((s) => ({
+                  id: s.step_order, order: s.step_order, title: s.title,
+                  category: s.fixed_category, stuckCount: s.stuck_count,
+                }))}
+              />
             </div>
           )}
 

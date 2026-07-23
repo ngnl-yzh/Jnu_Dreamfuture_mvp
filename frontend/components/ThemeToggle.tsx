@@ -15,9 +15,16 @@ export default function ThemeToggle() {
 
   function toggle() {
     const next = dark ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", next);
+    const root = document.documentElement;
+    // 전환 중에는 트랜지션을 끊어야 테두리 색 등이 이전 테마에 남지 않는다
+    root.classList.add("theme-switching");
+    root.setAttribute("data-theme", next);
     localStorage.setItem("jnu_theme", next);
     setDark(!dark);
+    // rAF는 백그라운드 탭에서 멈추므로 타이머 폴백을 함께 건다
+    const clear = () => root.classList.remove("theme-switching");
+    requestAnimationFrame(() => requestAnimationFrame(clear));
+    setTimeout(clear, 120);
   }
 
   return (

@@ -95,6 +95,14 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
+/* 테마 전환 순간에는 모든 트랜지션을 끈다.
+   그렇지 않으면 border-color 등이 이전 테마 색에 머무른다. */
+:root.theme-switching *,
+:root.theme-switching *::before,
+:root.theme-switching *::after {
+  transition: none !important;
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -356,12 +364,113 @@ code { background: var(--bg-2); border-radius: 6px; padding: 1px 6px; font-size:
 .stars { color: var(--star); letter-spacing: 1.5px; font-weight: 700; }
 
 /* ============================================================
-   테스트 단계 타임라인
+   노드 플로우 — 테스트 단계·작동 방식·이탈 분석 공통 언어
    ============================================================ */
-.step-list { list-style: none; padding: 0; margin: 0; position: relative; }
-.step-list::before { content: ""; position: absolute; left: 12.5px; top: 16px; bottom: 16px; width: 2px; background: linear-gradient(var(--primary-soft), transparent); }
-.step-list li { display: flex; gap: 14px; align-items: baseline; padding: 10px 0; font-size: 14px; position: relative; }
-.step-num { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--grad); color: #fff; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px -2px rgba(79,70,229,0.5); position: relative; z-index: 1; }
+
+/* 고정 4카테고리 색상 */
+.node[data-cat="pre_entry"] { --node-color: #0ea5e9; --node-soft: #e0f4fe; }
+.node[data-cat="setup"]     { --node-color: #8b5cf6; --node-soft: #f1eaff; }
+.node[data-cat="core"]      { --node-color: #4f46e5; --node-soft: #eaeaff; }
+.node[data-cat="post"]      { --node-color: #12996b; --node-soft: #e1f7ee; }
+.node                        { --node-color: var(--brand-1); --node-soft: var(--primary-soft); }
+:root[data-theme="dark"] .node[data-cat="pre_entry"] { --node-soft: #0c2a3a; }
+:root[data-theme="dark"] .node[data-cat="setup"]     { --node-soft: #241a3d; }
+:root[data-theme="dark"] .node[data-cat="core"]      { --node-soft: #1c1c46; }
+:root[data-theme="dark"] .node[data-cat="post"]      { --node-soft: #0e2c22; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .node[data-cat="pre_entry"] { --node-soft: #0c2a3a; }
+  :root:not([data-theme="light"]) .node[data-cat="setup"]     { --node-soft: #241a3d; }
+  :root:not([data-theme="light"]) .node[data-cat="core"]      { --node-soft: #1c1c46; }
+  :root:not([data-theme="light"]) .node[data-cat="post"]      { --node-soft: #0e2c22; }
+}
+
+.node-flow {
+  display: flex; align-items: stretch; gap: 0;
+  overflow-x: auto; overflow-y: hidden;
+  padding: 6px 2px 12px;
+  scroll-snap-type: x proximity;
+}
+.node-flow::-webkit-scrollbar { height: 7px; }
+
+/* 노드 */
+.node {
+  position: relative;
+  flex: 1 1 0; min-width: 200px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 15px;
+  padding: 15px 16px 14px;
+  display: flex; flex-direction: column; gap: 8px;
+  text-align: left; font-family: inherit; color: inherit;
+  scroll-snap-align: start;
+  /* border-color는 트랜지션에서 제외 — 테마 전환 시 이전 색이 남는다 */
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.node::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+  border-radius: 15px 15px 0 0; background: var(--node-color);
+}
+.node-head { display: flex; align-items: center; gap: 8px; }
+.node-num {
+  flex: none; width: 26px; height: 26px; border-radius: 9px;
+  background: var(--node-color); color: #fff;
+  font-size: 12.5px; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 9px -3px var(--node-color);
+}
+.node-cat {
+  font-size: 11px; font-weight: 750; letter-spacing: 0.01em;
+  background: var(--node-soft); color: var(--node-color);
+  border-radius: 999px; padding: 3px 10px; white-space: nowrap;
+}
+.node-title { font-size: 14.5px; font-weight: 750; letter-spacing: -0.015em; line-height: 1.4; }
+.node-guide { font-size: 12.5px; color: var(--muted-solid); line-height: 1.55; margin: 0; }
+
+/* 연결선 */
+.node-link {
+  flex: 0 0 28px; align-self: center; height: 2px;
+  background: var(--line-strong); position: relative; opacity: 0.85;
+}
+.node-link::after {
+  content: ""; position: absolute; right: -1px; top: 50%; transform: translateY(-50%);
+  border-left: 6px solid var(--line-strong);
+  border-top: 4.5px solid transparent; border-bottom: 4.5px solid transparent;
+}
+
+/* 선택 가능한 노드 (평가 폼 — 막힌 지점 고르기) */
+.node.selectable { cursor: pointer; }
+.node.selectable:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--node-color); }
+.node.selectable:focus-visible { outline: none; box-shadow: var(--ring); }
+.node.is-selected {
+  border-color: var(--node-color); background: var(--node-soft);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--node-color) 22%, transparent);
+}
+.node-pick { margin-top: 2px; font-size: 11.5px; font-weight: 750; color: var(--node-color); display: flex; align-items: center; gap: 5px; }
+
+/* 이탈 통계 노드 */
+.node-stat { margin-top: 4px; padding-top: 9px; border-top: 1px dashed var(--line); }
+.node-stat-row { display: flex; align-items: baseline; justify-content: space-between; font-size: 12px; }
+.node-stat-num { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: var(--node-color); }
+.node-stat-lab { color: var(--muted-solid); }
+.node-bar { height: 6px; border-radius: 4px; background: var(--bg-2); overflow: hidden; margin-top: 6px; }
+.node-bar > i { display: block; height: 100%; border-radius: 4px; background: var(--node-color); transition: width 0.5s cubic-bezier(0.22,1,0.36,1); }
+.node.is-hot { border-color: var(--danger); }
+.node.is-hot::before { background: var(--danger); }
+
+/* 모바일 — 세로 전환 */
+@media (max-width: 720px) {
+  .node-flow { flex-direction: column; overflow-x: visible; }
+  .node { min-width: 0; }
+  .node-link {
+    width: 2px; height: 22px; align-self: center; flex: 0 0 22px;
+    margin: 2px 0; background: var(--line-strong);
+  }
+  .node-link::after {
+    right: auto; left: 50%; top: auto; bottom: -1px; transform: translateX(-50%);
+    border-left: 4.5px solid transparent; border-right: 4.5px solid transparent;
+    border-top: 6px solid var(--line-strong); border-bottom: none;
+  }
+}
 
 /* ============================================================
    통계 바 / 대시보드

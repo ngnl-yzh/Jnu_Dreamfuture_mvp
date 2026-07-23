@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import StepNodes from "../components/StepNodes";
 import { api, getToken } from "../lib/api";
 
 interface MvpItem {
@@ -25,9 +26,12 @@ const SORTS = [
 ] as const;
 
 const STEPS = [
-  { n: "1", t: "MVP 업로드", d: "웹·CLI·API 어느 채널로든 zip을 올리면 draft로 저장됩니다. 크레딧 3을 소모해 등록해요." },
-  { n: "2", t: "블랙박스 실행", d: "본부 승인 후, 다른 구성원이 사이트 안 샌드박스에서 바로 체험합니다. 소스코드는 절대 노출되지 않아요." },
-  { n: "3", t: "구조화 평가 수집", d: "6항목 평가와 단계별 이탈 데이터가 쌓이고, 평가자는 크레딧을 얻습니다. 반출은 본부 승인 하에만." },
+  { id: 1, order: 1, title: "MVP 업로드", category: "pre_entry",
+    guide: "웹·CLI·API 어느 채널로든 zip을 올리면 draft로 저장됩니다. 크레딧 3을 소모해 등록해요." },
+  { id: 2, order: 2, title: "블랙박스 실행", category: "core",
+    guide: "본부 승인 후, 다른 구성원이 사이트 안 샌드박스에서 바로 체험합니다. 소스코드는 절대 노출되지 않아요." },
+  { id: 3, order: 3, title: "구조화 평가 수집", category: "post",
+    guide: "6항목 평가와 단계별 이탈 데이터가 쌓이고, 평가자는 크레딧을 얻습니다. 반출은 본부 승인 하에만." },
 ];
 
 const FEATURES = [
@@ -122,15 +126,7 @@ export default function HomePage() {
           <h2>3단계로 끝나는 MVP 검증</h2>
           <p>업로드부터 데이터 수집까지, 코드를 지키면서 진짜 사용자 피드백을 모으세요.</p>
         </div>
-        <div className="steps">
-          {STEPS.map((s) => (
-            <div className="step" key={s.n}>
-              <div className="step-badge">{s.n}</div>
-              <h3>{s.t}</h3>
-              <p>{s.d}</p>
-            </div>
-          ))}
-        </div>
+        <StepNodes steps={STEPS} />
       </section>
 
       {/* ── 기능 ── */}

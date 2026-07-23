@@ -2,11 +2,8 @@
 
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import LoginCta from "../../../components/LoginCta";
+import StepNodes from "../../../components/StepNodes";
 import { api, ApiError, getToken, RUN_BASE } from "../../../lib/api";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  pre_entry: "진입 전", setup: "가입·설정", core: "핵심 기능", post: "완료 후",
-};
 
 interface TestStep { id: number; step_order: number; title: string; guide_text: string; fixed_category: string; }
 interface Detail {
@@ -86,6 +83,11 @@ export default function MvpDetailPage({ params }: { params: Promise<{ id: string
   async function submitReview(e: React.FormEvent) {
     e.preventDefault();
     setFormError("");
+    // 노드 선택은 네이티브 required가 없으므로 직접 검증
+    if (!form.reached_core && form.stuck_step_id === null) {
+      setFormError("막힌 단계를 노드에서 선택해주세요.");
+      return;
+    }
     try {
       if (editingId) {
         await api(`/api/reviews/${editingId}`, { method: "PUT", body: form });
@@ -172,17 +174,12 @@ export default function MvpDetailPage({ params }: { params: Promise<{ id: string
       <div className="card">
         <h2 style={{ marginTop: 0 }}>테스트 시나리오</h2>
         <p className="muted">아래 단계를 따라 체험해보세요. 평가 시 막힌 단계를 선택하게 됩니다.</p>
-        <ul className="step-list">
-          {detail.test_steps.map((s) => (
-            <li key={s.id}>
-              <span className="step-num">{s.step_order}</span>
-              <span><strong>{s.title}</strong>
-                {s.guide_text && <span className="muted"> — {s.guide_text}</span>}{" "}
-                <span className="badge cat">{CATEGORY_LABELS[s.fixed_category]}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
+        <StepNodes
+          steps={detail.test_steps.map((s) => ({
+            id: s.id, order: s.step_order, title: s.title,
+            guide: s.guide_text, category: s.fixed_category,
+          }))}
+        />
       </div>
 
       {detail.description_md && (
@@ -261,14 +258,16 @@ export default function MvpDetailPage({ params }: { params: Promise<{ id: string
             </div>
             {!form.reached_core && (
               <>
-                <label>막힌 단계 (필수)</label>
-                <select value={form.stuck_step_id ?? ""} required
-                        onChange={(e) => setForm({ ...form, stuck_step_id: e.target.value ? +e.target.value : null })}>
-                  <option value="">단계 선택</option>
-                  {detail.test_steps.map((s) => (
-                    <option key={s.id} value={s.id}>{s.step_order}. {s.title}</option>
-                  ))}
-                </select>
+                <label>어느 단계에서 막혔나요? (필수 — 노드를 선택하세요)</label>
+                <StepNodes
+                  variant="select"
+                  selectedId={form.stuck_step_id}
+                  onSelect={(id) => setForm({ ...form, stuck_step_id: Number(id) })}
+                  steps={detail.test_steps.map((s) => ({
+                    id: s.id, order: s.step_order, title: s.title,
+                    guide: s.guide_text, category: s.fixed_category,
+                  }))}
+                />
                 <input value={form.stuck_note} placeholder="어떻게 막혔는지 적어주세요"
                        onChange={(e) => setForm({ ...form, stuck_note: e.target.value })} />
               </>
